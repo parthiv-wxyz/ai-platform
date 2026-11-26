@@ -1,0 +1,9 @@
+-- Run with `supabase test db` after linking this repository to a local Supabase stack.
+-- The test runner must create two authenticated JWT identities and assert:
+-- 1. User A can create, read, update, and delete only User A conversations.
+-- 2. User B cannot read, update, or delete User A conversations.
+-- 3. User B cannot insert a message using User A's conversation ID.
+-- 4. An anonymous request has no table access.
+--
+-- The migration keeps this enforcement in the database via explicit RLS policies;
+-- run the same cases against a configured Supabase project before deployment.

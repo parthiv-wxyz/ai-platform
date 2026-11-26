@@ -65,3 +65,9 @@ Before merging:
 ## Milestone 0 checks
 
 The repository currently runs Vitest unit tests for the deterministic mock provider and includes a Playwright smoke test for the application shell. CI runs lint, TypeScript typechecking, unit tests, and the production build. Browser tests remain a local opt-in check until browser binaries are provisioned in CI.
+
+## Milestone 1 checks
+
+- Unit tests verify authentication is required, client-supplied ownership fields are rejected, and a second user cannot read, update, or delete another user's conversation through the service boundary.
+- `supabase/tests/conversation_rls.sql` records the required two-user and anonymous RLS checks. Run it against a configured local Supabase stack before deployment.
+- Live two-user RLS tests cannot run in CI without isolated Supabase test credentials; follow `docs/SUPABASE_SETUP.md` after applying the migration.

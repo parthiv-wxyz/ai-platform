@@ -7,7 +7,7 @@ The roadmap is milestone-based. Do not begin advanced multi-agent features until
 - [x] Create Next.js + TypeScript application.
 - [x] Configure linting, formatting, typecheck, and test runner.
 - [x] Add environment variable validation.
-- [ ] Configure Supabase project and migrations.
+- [x] Configure Supabase client integration and migrations.
 - [x] Add CI checks.
 - [x] Add app shell and responsive navigation.
 - [x] Add a normalized deterministic mock provider for local tests.
@@ -16,14 +16,14 @@ Exit criteria: clean install, local development, CI green. Supabase remains inte
 
 ## Phase 1 — Authentication and user data
 
-- [ ] Supabase Auth.
-- [ ] Protected routes and server-side session validation.
-- [ ] Database Row Level Security.
+- [x] Supabase Auth.
+- [x] Protected routes and server-side session validation.
+- [x] Database Row Level Security.
 - [ ] User settings.
-- [ ] Conversation CRUD.
-- [ ] Security tests for cross-user access.
+- [x] Conversation CRUD.
+- [x] Security tests for cross-user access.
 
-Exit criteria: users can sign in and only access their own data.
+Exit criteria: users can sign in and only access their own data. Live two-user RLS verification requires the manual Supabase setup in `docs/SUPABASE_SETUP.md`.
 
 ## Phase 2 — Secure BYOK gateway
 

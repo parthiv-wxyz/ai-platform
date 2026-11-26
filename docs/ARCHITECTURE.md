@@ -171,6 +171,13 @@ Do not stream internal chain-of-thought. Show concise status and user-visible su
 
 Use free hosting tiers only as a development constraint, not as a guarantee of permanent free production hosting. Check current limits, sleeping behavior, request duration, database storage, and commercial-use terms before launch. Avoid long-running background jobs in the MVP.
 
-## 11. Milestone 0 implementation status
+## 11. Milestone 1 authentication and persistence
 
-The current repository implements the application shell, Zod environment validation, and a provider-neutral mock adapter under the documented `types/` and `lib/ai/providers/` boundaries. Real provider adapters, Supabase persistence, authentication, credential encryption, routing, and orchestration remain future milestones.
+- Supabase SSR clients are request-scoped. The browser receives only the public project URL and publishable/anon key.
+- `proxy.ts` refreshes Supabase sessions; server pages and mutations independently verify the user with `auth.getUser()` and are the authorization boundary.
+- Conversation services derive the owner exclusively from the verified session, never from a form field or request body.
+- RLS is enabled on `profiles`, `conversations`, and `messages`, with policies restricted to the `authenticated` role and `(select auth.uid())` ownership checks.
+- The `messages` composite foreign key binds `conversation_id` and `user_id` to the same conversation owner, preventing a cross-user message reference even before RLS is evaluated.
+- The service-role key is intentionally absent from this milestone.
+
+Real provider adapters, provider credential encryption, routing, and orchestration remain future milestones.

@@ -8,7 +8,7 @@ The central product differentiator is not simply access to many models. It is **
 
 ## Product status
 
-This repository now contains Milestone 0: a runnable Next.js foundation with a responsive shell, strict TypeScript, Zod environment validation, a normalized deterministic mock provider, and automated quality checks. Real providers, Supabase, authentication, and credential encryption are intentionally not connected yet.
+This repository now contains Milestone 1: a runnable Next.js foundation with Supabase email/password authentication, server-validated sessions, protected conversations, and Row Level Security migrations. Real AI providers and provider credential encryption are intentionally not connected yet.
 
 ## Core principles
 
@@ -47,8 +47,9 @@ Free-tier limits and provider pricing change. Verify current official documentat
 The project requires Node.js 20.9 or newer. The repository currently uses npm and includes a committed `package-lock.json`.
 
 1. Run `npm install`.
-2. Copy `.env.example` to `.env.local` if you want to override the local app URL.
-3. Run `npm run dev` and open `http://localhost:3000`.
+2. Copy `.env.example` to `.env.local` and configure Supabase using [`docs/SUPABASE_SETUP.md`](./docs/SUPABASE_SETUP.md).
+3. Apply the committed Supabase migration.
+4. Run `npm run dev` and open `http://localhost:3000`.
 
 Quality checks:
 
@@ -86,14 +87,18 @@ Read `AGENTS.md` and `docs/VIBE_CODING_GUIDE.md` before making changes.
 
 Codex desktop app is the primary repository owner, Claude Free is used as a consultant, and Google Antigravity is used for UI/browser work. See `CLAUDE.md` and `docs/MULTI_AGENT_WORKFLOW.md`.
 
-## Milestone 0 implementation
+## Milestone 1 implementation
 
 - `app/` contains the App Router shell.
 - `lib/env.ts` validates application environment variables with Zod.
 - `types/ai.ts` defines the provider-neutral AI contract.
 - `lib/ai/providers/mock-provider.ts` provides deterministic local responses for tests.
+- `lib/supabase/` creates request-scoped Supabase SSR clients and refreshes sessions in `proxy.ts`.
+- `app/(auth)/` contains email/password sign-up, confirmation, sign-in, and sign-out flows.
+- `app/dashboard/` provides protected conversation create, read, update, and delete flows.
+- `supabase/migrations/` contains reproducible schema, foreign key, index, grant, trigger, and RLS definitions.
 - `tests/unit/` contains Vitest unit tests.
 - `tests/e2e/` contains Playwright browser tests.
 - `.github/workflows/ci.yml` runs lint, typecheck, tests, and build.
 
-No real provider credentials, provider SDKs, Supabase connections, authentication, or encryption are used in this milestone.
+No real AI provider credentials, provider SDKs, or provider credential encryption are used in this milestone. The Supabase service-role key is not used.

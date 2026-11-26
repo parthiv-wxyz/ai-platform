@@ -114,12 +114,20 @@ export default function Home() {
                   <p className="text-xs text-slate-500">
                     No external provider calls are enabled yet.
                   </p>
-                  <a
-                    className="bg-primary text-primary-foreground hover:bg-primary/80 inline-flex h-9 items-center justify-center gap-1.5 rounded-lg px-3 text-sm font-medium transition-colors"
-                    href="#workspace"
-                  >
-                    Open workspace <ArrowUpRight className="size-4" />
-                  </a>
+                  <div className="flex gap-3">
+                    <a
+                      className="inline-flex h-9 items-center justify-center rounded-lg border border-slate-300 px-3 text-sm font-medium text-slate-950 transition hover:bg-slate-100"
+                      href="/sign-in"
+                    >
+                      Sign in
+                    </a>
+                    <a
+                      className="bg-primary text-primary-foreground hover:bg-primary/80 inline-flex h-9 items-center justify-center gap-1.5 rounded-lg px-3 text-sm font-medium transition-colors"
+                      href="/dashboard"
+                    >
+                      Open workspace <ArrowUpRight className="size-4" />
+                    </a>
+                  </div>
                 </div>
               </div>
               <div className="rounded-3xl bg-slate-950 p-6 text-white shadow-sm sm:p-8">

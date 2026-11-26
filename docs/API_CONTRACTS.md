@@ -89,6 +89,15 @@ data: {"runId":"uuid","assistantMessageId":"uuid"}
 
 Do not send API keys, raw provider headers, internal stack traces, or hidden chain-of-thought in events.
 
+## Conversations
+
+Milestone 1 exposes conversation CRUD through protected server actions. The server obtains the owner from the verified Supabase session; it never accepts a `userId` in input. A later API version may expose equivalent route handlers, preserving the same validation and ownership rules.
+
+- Create: title only, maximum 200 characters.
+- Read/list: returns only conversations owned by the authenticated user.
+- Rename: title only; ownership is checked in the server query and again by RLS.
+- Delete: scoped to both the requested conversation ID and verified owner; messages cascade-delete with their conversation.
+
 ## Usage
 
 ### `GET /api/usage?from=...&to=...`

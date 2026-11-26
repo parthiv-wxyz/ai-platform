@@ -1,6 +1,6 @@
 # Proposed Data Model
 
-This is a logical starting point, not a final migration. Review Supabase Auth integration and RLS behavior before implementing.
+The Milestone 1 migration implements `profiles`, `conversations`, and `messages`. Provider-related entities remain a logical starting point for later milestones.
 
 ## Entities
 
@@ -47,6 +47,8 @@ Never store plaintext API keys. Never return ciphertext or credential metadata t
 - `role` (`user`, `assistant`, `system`).
 - `content` text or structured JSON.
 - `created_at`.
+
+The implemented migration uses a composite foreign key from `(conversation_id, user_id)` to `conversations(id, user_id)`. This guarantees that a message cannot claim a user other than its conversation owner.
 
 Do not store provider secrets in messages. Avoid persisting hidden reasoning. Store only user-visible output and necessary execution metadata.
 
@@ -107,6 +109,8 @@ Do not store provider secrets in messages. Avoid persisting hidden reasoning. St
 - Credential reads should go through a dedicated server-side security module.
 - Never expose credential ciphertext through general profile/provider list endpoints.
 - Add tests proving user A cannot read or mutate user B's records.
+
+Milestone 1 grants no `anon` access, scopes application grants to `authenticated`, and uses a separate RLS policy for each allowed operation. The profile creation trigger runs after an Auth user is created; application users cannot insert profiles directly.
 
 ## Retention
 
