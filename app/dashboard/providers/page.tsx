@@ -1,9 +1,7 @@
 import Link from "next/link";
-import { connection } from "next/server";
 import { ProviderManager } from "@/app/dashboard/providers/provider-manager";
 
 export default async function ProvidersPage() {
-  await connection();
   return (
     <main className="min-h-screen bg-[#f5f7fb] px-5 py-8 sm:px-8 lg:px-12">
       <div className="mx-auto max-w-3xl">
