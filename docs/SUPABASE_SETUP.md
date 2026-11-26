@@ -17,7 +17,8 @@ Milestone 1 uses Supabase Auth and Postgres with the public project URL and publ
    NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=<publishable-key>
    ```
 
-6. Apply `supabase/migrations/202611260001_auth_and_conversations.sql` using the Supabase CLI or SQL Editor.
+6. Apply `supabase/migrations/202611260001_auth_and_conversations.sql` and then `supabase/migrations/202611260002_provider_connections.sql` using the Supabase CLI or SQL Editor.
+7. Set `SUPABASE_SERVICE_ROLE_KEY` and a random 32-byte hex `AI_CREDENTIAL_ENCRYPTION_KEY` in server-only deployment variables. Never prefix either with `NEXT_PUBLIC_`.
 
 ## Required verification
 

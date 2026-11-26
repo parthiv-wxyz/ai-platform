@@ -8,7 +8,7 @@ The central product differentiator is not simply access to many models. It is **
 
 ## Product status
 
-This repository now contains Milestone 1: a runnable Next.js foundation with Supabase email/password authentication, server-validated sessions, protected conversations, and Row Level Security migrations. Real AI providers and provider credential encryption are intentionally not connected yet.
+This repository contains Milestone 2: a runnable Next.js foundation with Supabase email/password authentication, protected conversations, encrypted Gemini credentials, and single-model Gemini chat. Multi-agent workflows and additional providers remain future work.
 
 ## Core principles
 
@@ -93,6 +93,8 @@ Codex desktop app is the primary repository owner, Claude Free is used as a cons
 - `lib/env.ts` validates application environment variables with Zod.
 - `types/ai.ts` defines the provider-neutral AI contract.
 - `lib/ai/providers/mock-provider.ts` provides deterministic local responses for tests.
+- `lib/ai/providers/gemini-provider.ts` adapts the official Google Gen AI SDK to the normalized contract.
+- `/dashboard/providers` manages encrypted, user-owned Gemini connections; keys are never displayed after saving.
 - `lib/supabase/` creates request-scoped Supabase SSR clients and refreshes sessions in `proxy.ts`.
 - `app/(auth)/` contains email/password sign-up, confirmation, sign-in, and sign-out flows.
 - `app/dashboard/` provides protected conversation create, read, update, and delete flows.
@@ -101,4 +103,4 @@ Codex desktop app is the primary repository owner, Claude Free is used as a cons
 - `tests/e2e/` contains Playwright browser tests.
 - `.github/workflows/ci.yml` runs lint, typecheck, tests, and build.
 
-No real AI provider credentials, provider SDKs, or provider credential encryption are used in this milestone. The Supabase service-role key is not used.
+Gemini API keys are stored as AES-256-GCM ciphertext using a server-only encryption key. The server-only Supabase service-role key is used only after session ownership is verified to read encrypted credential columns; it is never exposed to the browser.

@@ -82,6 +82,8 @@ Do not share private conversation or response cache entries across users. Cache 
 - Never infer that a user's consumer subscription pays for API requests.
 - Never use a provider key for a different user's request.
 
+Milestone 2 enforces the single-model default: one Gemini request per submitted message, an explicit `maxOutputTokens` limit, a server timeout, no automatic retries, and no paid-provider fallback. Provider billing remains the user's responsibility.
+
 ## 9. Metrics
 Track:
 - Calls per run.

@@ -8,6 +8,7 @@ import {
   ConversationNotFoundError,
   createConversationService,
 } from "@/lib/db/conversations";
+import { Chat } from "@/app/dashboard/conversations/[conversationId]/chat";
 
 export default async function ConversationPage({
   params,
@@ -38,11 +39,7 @@ export default async function ConversationPage({
             action={renameConversation.bind(null, conversation.id)}
             initialTitle={conversation.title}
           />
-          <p className="mt-8 rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-5 text-sm leading-6 text-slate-600">
-            Messages will be added with the single-model chat milestone. This
-            conversation is already protected by server ownership checks and
-            database RLS.
-          </p>
+          <Chat conversationId={conversation.id} />
         </section>
       </div>
     </main>

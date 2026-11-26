@@ -42,6 +42,12 @@ export default async function DashboardPage() {
               Sign out
             </button>
           </form>
+          <Link
+            className="text-sm font-medium text-indigo-700"
+            href="/dashboard/providers"
+          >
+            Providers
+          </Link>
         </header>
 
         <section className="mt-8 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8">

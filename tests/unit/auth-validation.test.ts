@@ -2,11 +2,11 @@ import { describe, expect, it } from "vitest";
 import { credentialsSchema } from "@/lib/validation/auth";
 
 describe("credentialsSchema", () => {
-  it("accepts a valid email and a sufficiently long password", () => {
+  it("accepts a valid email and a four-character password", () => {
     expect(
       credentialsSchema.safeParse({
         email: " member@example.com ",
-        password: "long-enough-password",
+        password: "1234",
       }),
     ).toMatchObject({ success: true });
   });
@@ -15,7 +15,7 @@ describe("credentialsSchema", () => {
     expect(
       credentialsSchema.safeParse({
         email: "not-an-email",
-        password: "too-short",
+        password: "123",
       }).success,
     ).toBe(false);
   });

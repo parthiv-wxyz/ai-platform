@@ -13,6 +13,8 @@ Potential initial integrations:
 
 Provider support, model names, authorization options, rate limits, regional availability, and pricing change. Verify official current documentation before coding each integration.
 
+Milestone 2 implements Google Gemini through the official `@google/genai` SDK. OpenAI and Anthropic remain intentionally unimplemented. The default path makes one Gemini call per chat submission; model and output-token limits are validated server-side, with no automatic fallback or hidden retry.
+
 ## 3. Credential modes
 
 Support only provider-approved methods:
@@ -97,3 +99,7 @@ For each provider:
 - Streaming event normalization.
 - Unsupported capability rejection.
 - Secret redaction.
+
+## 9. Local Gemini setup
+
+Add a Gemini API key through the authenticated **Provider connections** screen. It is encrypted with AES-256-GCM before persistence and never returned after saving. Set `AI_CREDENTIAL_ENCRYPTION_KEY` to a random 32-byte hex value and keep `SUPABASE_SERVICE_ROLE_KEY` server-only. Apply the provider migration after the authentication/conversations migration.

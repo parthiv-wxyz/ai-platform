@@ -24,10 +24,23 @@ const supabaseEnvSchema = z
     },
   );
 
+const providerEnvSchema = z.object({
+  AI_CREDENTIAL_ENCRYPTION_KEY: z.string().regex(/^[0-9a-f]{64}$/i),
+  SUPABASE_SERVICE_ROLE_KEY: z.string().min(1),
+  GEMINI_DEFAULT_MODEL: z.string().min(1).default("gemini-2.5-flash"),
+  AI_PROVIDER_TIMEOUT_MS: z.coerce
+    .number()
+    .int()
+    .positive()
+    .max(120_000)
+    .default(30_000),
+});
+
 export type AppEnv = z.infer<typeof envSchema>;
 export type SupabaseEnv = z.infer<typeof supabaseEnvSchema> & {
   publishableKey: string;
 };
+export type ProviderEnv = z.infer<typeof providerEnvSchema>;
 
 export function getEnv(source: NodeJS.ProcessEnv = process.env): AppEnv {
   return envSchema.parse(source);
@@ -52,6 +65,12 @@ export function isSupabaseConfigured(
   source: NodeJS.ProcessEnv = process.env,
 ): boolean {
   return supabaseEnvSchema.safeParse(source).success;
+}
+
+export function getProviderEnv(
+  source: NodeJS.ProcessEnv = process.env,
+): ProviderEnv {
+  return providerEnvSchema.parse(source);
 }
 
 export const env = getEnv();

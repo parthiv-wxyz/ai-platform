@@ -22,6 +22,8 @@ For a personal prototype, an environment-managed encryption key may be used. Bef
 - Keep Supabase service-role credentials server-side.
 - Use least privilege.
 
+Provider ciphertext columns are not granted to the browser-facing authenticated role. Server code verifies the Supabase session owner first, then uses the server-only service-role client for the minimum credential read needed by the provider adapter. The service-role key is never sent to the browser.
+
 ## 3. API security
 - Validate request bodies and query parameters.
 - Add rate limits to credential, chat, and expensive endpoints.
