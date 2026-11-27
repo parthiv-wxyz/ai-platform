@@ -112,7 +112,12 @@ function normalizeGeminiError(error: unknown): AiProviderError {
       { cause: error },
     );
   }
-  if (lower.includes("404") || lower.includes("model")) {
+  if (
+    lower.includes("404") ||
+    lower.includes("not found") ||
+    lower.includes("not supported") ||
+    lower.includes("model is unavailable")
+  ) {
     return new AiProviderError(
       "MODEL_UNAVAILABLE",
       "The selected Gemini model is unavailable.",

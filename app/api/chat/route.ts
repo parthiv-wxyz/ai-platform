@@ -48,18 +48,24 @@ export async function POST(request: Request) {
       signal: request.signal,
     });
 
+    const userMessageCreatedAt = new Date();
+    const assistantMessageCreatedAt = new Date(
+      userMessageCreatedAt.getTime() + 1,
+    ).toISOString();
     const { error: insertError } = await supabase.from("messages").insert([
       {
         conversation_id: conversation.id,
         user_id: auth.user.id,
         role: "user",
         content: input.message,
+        created_at: userMessageCreatedAt.toISOString(),
       },
       {
         conversation_id: conversation.id,
         user_id: auth.user.id,
         role: "assistant",
         content: response.content,
+        created_at: assistantMessageCreatedAt,
       },
     ]);
     if (insertError !== null) throw insertError;

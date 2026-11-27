@@ -9,6 +9,10 @@ import {
   createConversationService,
 } from "@/lib/db/conversations";
 import { Chat } from "@/app/dashboard/conversations/[conversationId]/chat";
+import { createMessageService } from "@/lib/db/messages";
+
+// This page loads request-scoped authenticated conversation data on the server.
+export const instant = false;
 
 export default async function ConversationPage({
   params,
@@ -18,6 +22,7 @@ export default async function ConversationPage({
   await connection();
   const { conversationId } = await params;
   const conversation = await loadConversation(conversationId);
+  const messages = await loadMessages(conversation.id);
 
   return (
     <main className="min-h-screen bg-[#f5f7fb] px-5 py-8 sm:px-8 lg:px-12">
@@ -39,11 +44,20 @@ export default async function ConversationPage({
             action={renameConversation.bind(null, conversation.id)}
             initialTitle={conversation.title}
           />
-          <Chat conversationId={conversation.id} />
+          <Chat
+            key={conversation.id}
+            conversationId={conversation.id}
+            initialMessages={messages}
+          />
         </section>
       </div>
     </main>
   );
+}
+
+async function loadMessages(conversationId: string) {
+  const service = await createMessageService();
+  return service.list(conversationId);
 }
 
 async function loadConversation(conversationId: string) {

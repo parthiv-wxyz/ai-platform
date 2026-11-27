@@ -27,7 +27,7 @@ const supabaseEnvSchema = z
 const providerEnvSchema = z.object({
   AI_CREDENTIAL_ENCRYPTION_KEY: z.string().regex(/^[0-9a-f]{64}$/i),
   SUPABASE_SERVICE_ROLE_KEY: z.string().min(1),
-  GEMINI_DEFAULT_MODEL: z.string().min(1).default("gemini-2.5-flash"),
+  GEMINI_DEFAULT_MODEL: z.string().min(1).default("gemini-3.5-flash-lite"),
   AI_PROVIDER_TIMEOUT_MS: z.coerce
     .number()
     .int()
