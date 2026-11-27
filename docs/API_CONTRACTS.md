@@ -51,16 +51,14 @@ Request:
 {
   "conversationId": "uuid",
   "message": "Explain database indexing",
-  "modelPreference": {
     "provider": "google",
-    "modelId": "selected-model-id"
-  },
-  "execution": {
-    "mode": "single",
-    "maxModelCalls": 1,
-    "maxOutputTokens": 700,
-    "allowPaidModels": false
-  }
+    "model": "gemini-3.5-flash-lite",
+    "taskType": "CODEBASE_ANALYSIS",
+    "language": "typescript",
+    "sourceCode": "...",
+    "errorLogs": "...",
+    "repositoryContext": "...",
+    "maxOutputTokens": 700
 }
 ```
 
@@ -68,7 +66,9 @@ Rules:
 - Validate conversation ownership.
 - Validate model is enabled and belongs to an active connection.
 - Enforce output and run budgets server-side.
-- `allowPaidModels: false` is a policy constraint, not a UI hint.
+  - Classify requests deterministically; ambiguous requests receive clarification without a model call.
+  - Route to one eligible free coding model by default and return classification/routing metadata.
+- Free-only eligibility is a server-side policy constraint, not a UI hint. The server rejects unknown, paid, disabled, or unverified model identifiers.
 - Never trust a client-supplied price or token count.
 - If streaming, use a documented SSE event format.
 
@@ -122,7 +122,7 @@ Suggested codes:
 - `CONNECTION_NOT_FOUND`
 - `CONNECTION_INVALID`
 - `MODEL_NOT_ENABLED`
-- `MODEL_NOT_ALLOWED`
+- `MODEL_NOT_FREE`
 - `BUDGET_EXCEEDED`
 - `PROVIDER_RATE_LIMITED`
 - `PROVIDER_TIMEOUT`

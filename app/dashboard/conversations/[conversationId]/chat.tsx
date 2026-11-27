@@ -14,6 +14,7 @@ export function Chat({
   initialMessages: ConversationMessage[];
 }) {
   const [message, setMessage] = useState("");
+  const [provider, setProvider] = useState<"google" | "ollama">("google");
   const [messages, setMessages] = useState<DisplayMessage[]>(initialMessages);
   const [error, setError] = useState("");
   const [pending, setPending] = useState(false);
@@ -32,7 +33,11 @@ export function Chat({
       const response = await fetch("/api/chat", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ conversationId, message: content }),
+        body: JSON.stringify({
+          conversationId,
+          message: content,
+          provider,
+        }),
       });
       const payload = (await response.json()) as {
         response?: { content: string };
@@ -63,10 +68,30 @@ export function Chat({
   return (
     <section className="mt-8 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
       <h2 className="text-lg font-semibold">Single-model chat</h2>
+      <label className="mt-4 block text-sm font-medium text-slate-700">
+        Model route
+        <select
+          className="mt-2 block rounded-xl border border-slate-300 px-3 py-2.5 text-sm"
+          value={provider}
+          onChange={(event) =>
+            setProvider(event.target.value as "google" | "ollama")
+          }
+          aria-label="Chat model route"
+        >
+          <option value="google">Free API · Gemini</option>
+          <option value="ollama">Local no-quota · Qwen3-Coder</option>
+        </select>
+      </label>
+      <p className="mt-4 text-sm text-slate-500">
+        {provider === "google"
+          ? "Gemini free-tier quotas apply."
+          : "Ollama must be running locally; usage is limited by your hardware, not an API quota."}
+      </p>
       <div className="mt-4 space-y-3" aria-live="polite">
         {messages.length === 0 ? (
           <p className="rounded-xl border border-dashed border-slate-300 bg-slate-50 p-4 text-sm text-slate-600">
-            No messages yet. Ask Gemini a question to start this conversation.
+            No messages yet. Ask the selected model a question to start this
+            conversation.
           </p>
         ) : (
           messages.map((item) => (
@@ -75,7 +100,11 @@ export function Chat({
               key={item.id}
             >
               <p className="mb-1 text-xs font-semibold tracking-wide text-slate-500 uppercase">
-                {item.role === "user" ? "You" : "Gemini"}
+                {item.role === "user"
+                  ? "You"
+                  : provider === "ollama"
+                    ? "Qwen3-Coder"
+                    : "Gemini"}
               </p>
               {item.content}
             </article>

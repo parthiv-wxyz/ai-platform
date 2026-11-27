@@ -1,6 +1,6 @@
 # Development Roadmap
 
-The roadmap is milestone-based. Do not begin advanced multi-agent features until the single-provider gateway is secure and tested.
+The roadmap is milestone-based and coding-focused. Do not begin advanced collaboration until the single-model coding gateway is secure and tested.
 
 ## Phase 0 — Repository foundation
 
@@ -37,10 +37,11 @@ Exit criteria: users can sign in and only access their own data. Live two-user R
 
 Exit criteria: authenticated user can make one model call with their own key.
 
-## Phase 3 — Unified chat and usage
+## Phase 3 — Coding gateway and usage
 
 - [ ] Model registry.
-- [ ] Unified chat UI.
+- [x] Coding-focused single-model chat UI.
+  - [x] Coding task taxonomy and deterministic classifier.
 - [ ] Streaming response where supported.
 - [ ] Store user messages and assistant responses.
 - [ ] Capture provider usage metadata.
@@ -50,19 +51,23 @@ Exit criteria: authenticated user can make one model call with their own key.
 
 Exit criteria: user can chat with one of their enabled models and inspect usage.
 
-## Phase 4 — More providers and routing
+## Phase 4 — Coding routing and validation
 
-- [ ] Add second provider adapter.
-- [ ] Add third provider adapter.
-- [ ] Add capability-based filtering.
+- [x] Add local Ollama/Qwen adapter.
+- [x] Preserve Gemini free API and MockProvider.
+  - [x] Add capability-based filtering.
+  - [x] Add task-specific routing policies for the coding taxonomy.
+- [ ] Add generated-code static-analysis and test-validation hooks.
 - [ ] Add user model preferences.
-- [ ] Add free-only / paid-allowed policy.
-- [ ] Add deterministic fallback only within allowed policy.
-- [ ] Add routing tests.
+- [x] Add a free-only eligibility policy.
+- [x] Stop safely when the free quota or rate limit is exhausted; no paid fallback.
+  - [x] Add routing, classifier, and execution-policy tests.
+
+  Milestone 4B will add bounded orchestration only where justified, generated-code validation using available tests/static analysis, and richer usage telemetry. It will not introduce unlimited agent loops or paid inference.
 
 Exit criteria: router chooses only eligible models and never silently uses a paid route.
 
-## Phase 5 — Token efficiency
+## Phase 5 — Bounded coding orchestration
 
 - [ ] Task complexity classifier.
 - [ ] Minimal execution planner.
@@ -71,17 +76,19 @@ Exit criteria: router chooses only eligible models and never silently uses a pai
 - [ ] Run-level budget reservation.
 - [ ] Early-stop policy.
 - [ ] Optional reviewer gate.
+- [ ] Explicit code-review and debugging evidence requirements.
+- [ ] Sandbox policy for approved validation commands.
 - [ ] Usage and cost estimate display with clear uncertainty labels.
 
 Exit criteria: simple prompts use one model call; additional calls require a recorded reason and available budget.
 
-## Phase 6 — Multi-model collaboration
+## Phase 6 — Bounded coding collaboration
 
 - [ ] Parallel comparison mode.
 - [ ] Reviewer mode.
-- [ ] Debate mode with a fixed round cap.
+- [ ] Review mode with a fixed call and round cap.
 - [ ] Structured evaluation rubric.
-- [ ] Synthesis that preserves disagreements.
+- [ ] Synthesis that preserves code-review disagreements.
 - [ ] Partial failure handling.
 - [ ] Real-time run events.
 

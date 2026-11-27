@@ -1,34 +1,34 @@
 # AI Council
 
-**One question. Multiple intelligences. One better-informed result.**
+**One coding task. One bounded, useful engineering result.**
 
-AI Council is a BYOK multi-model AI collaboration platform. Users connect AI provider credentials they are authorized to use. The platform can route a task to one suitable model, optionally request independent reviews, and synthesize a final response.
+AI Council is a coding-only AI platform. It helps developers generate, debug, review, refactor, and test code, understand repositories, and plan software architecture. Users can connect an authorized Google Gemini API key or run Qwen3-Coder locally through Ollama.
 
-The central product differentiator is not simply access to many models. It is **cost-aware orchestration**: use the fewest model calls needed to satisfy the task.
+The central product differentiator is **bounded coding orchestration**: use the fewest model calls needed, validate generated output where possible, and never claim code was executed when it was only generated.
 
 ## Product status
 
-This repository contains Milestone 2: a runnable Next.js foundation with Supabase email/password authentication, protected conversations, encrypted Gemini credentials, and single-model Gemini chat. Multi-agent workflows and additional providers remain future work.
+This repository contains the free-only coding foundation: Supabase authentication, protected conversations, encrypted Gemini credentials, local Ollama/Qwen support, a server-side free-model eligibility registry, and single-model coding chat. Task-aware orchestration and bounded review workflows remain future work.
 
 ## Core principles
 
 - BYOK: users supply their own API keys or use supported official authorization integrations.
 - No subscription circumvention: consumer chat subscriptions do not automatically include API access.
-- No silent paid fallback.
-- Minimal token usage and transparent usage reporting.
+- Free-only execution: unknown, paid, disabled, or unverified models are rejected server-side.
+- Coding-specific task routing and transparent usage reporting.
 - Provider-neutral architecture.
 - Secure server-side credential handling.
 - Consensus is a decision-support feature, not a guarantee of correctness.
 
-## Planned capabilities
+## Coding capabilities
 
-1. Unified chat across supported model providers.
-2. User-managed provider connections.
-3. Model capability and availability registry.
-4. Cost-aware model routing.
-5. Optional parallel comparison, debate, review, and specialist workflows.
-6. Token / usage budgets and hard stop conditions.
-7. Evidence-aware synthesis that preserves disagreements.
+1. Code generation and implementation planning.
+2. Debugging and error analysis.
+3. AI code review for correctness, security, and maintainability.
+4. Code refactoring.
+5. Unit and integration test generation.
+6. Repository understanding and codebase analysis.
+7. Bounded, task-specific review when additional analysis is justified.
 8. Conversation history and usage analytics.
 
 ## Initial stack
@@ -49,7 +49,9 @@ The project requires Node.js 20.9 or newer. The repository currently uses npm an
 1. Run `npm install`.
 2. Copy `.env.example` to `.env.local` and configure Supabase using [`docs/SUPABASE_SETUP.md`](./docs/SUPABASE_SETUP.md).
 3. Apply the committed Supabase migration.
-4. Run `npm run dev` and open `http://localhost:3000`.
+4. Optional local Qwen setup: install Ollama, run `ollama pull qwen3-coder`,
+   and keep Ollama running while using the local route.
+5. Run `npm run dev` and open `http://localhost:3000`.
 
 Quality checks:
 
@@ -78,23 +80,23 @@ Read `AGENTS.md` and `docs/VIBE_CODING_GUIDE.md` before making changes.
 
 ## Important limitations
 
-- AI Council does not provide free inference by itself. BYOK users pay providers according to their own plans and API billing arrangements, unless a provider offers an eligible free API quota.
+- Gemini free-tier quotas and local Ollama hardware limits are not guarantees of unlimited inference.
 - A user's ChatGPT Plus, Claude Pro, or other consumer subscription must not be treated as API credits unless the provider explicitly supports that access path.
 - OAuth and account linking must use provider-approved flows. Never ask for provider website passwords or automate consumer websites to bypass API billing.
-- The project should remain usable in single-model mode if multi-agent execution is unavailable or too expensive.
+- The project must remain useful in single-model mode; multiple model calls are optional, bounded, and justified by the coding task.
 
 ## Multi-agent workflow
 
 Codex desktop app is the primary repository owner, Claude Free is used as a consultant, and Google Antigravity is used for UI/browser work. See `CLAUDE.md` and `docs/MULTI_AGENT_WORKFLOW.md`.
 
-## Milestone 1 implementation
+## Current implementation
 
 - `app/` contains the App Router shell.
 - `lib/env.ts` validates application environment variables with Zod.
 - `types/ai.ts` defines the provider-neutral AI contract.
 - `lib/ai/providers/mock-provider.ts` provides deterministic local responses for tests.
 - `lib/ai/providers/gemini-provider.ts` adapts the official Google Gen AI SDK to the normalized contract.
-- `/dashboard/providers` manages encrypted, user-owned Gemini connections; keys are never displayed after saving.
+- `/dashboard/providers` manages an encrypted, user-owned Gemini connection; keys are never displayed after saving.
 - `lib/supabase/` creates request-scoped Supabase SSR clients and refreshes sessions in `proxy.ts`.
 - `app/(auth)/` contains email/password sign-up, confirmation, sign-in, and sign-out flows.
 - `app/dashboard/` provides protected conversation create, read, update, and delete flows.
@@ -103,4 +105,4 @@ Codex desktop app is the primary repository owner, Claude Free is used as a cons
 - `tests/e2e/` contains Playwright browser tests.
 - `.github/workflows/ci.yml` runs lint, typecheck, tests, and build.
 
-Gemini API keys are stored as AES-256-GCM ciphertext using a server-only encryption key. The server-only Supabase service-role key is used only after session ownership is verified to read encrypted credential columns; it is never exposed to the browser.
+Provider API keys are stored as AES-256-GCM ciphertext using a server-only encryption key. The server-only Supabase service-role key is used only after session ownership is verified to read encrypted credential columns; it is never exposed to the browser.

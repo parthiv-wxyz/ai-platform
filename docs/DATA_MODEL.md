@@ -12,7 +12,7 @@ The Milestone 1 migration implements `profiles`, `conversations`, and `messages`
 ### `provider_connections`
 - `id` UUID primary key.
 - `user_id` UUID, references `profiles.id`.
-- `provider` text / enum (`openai`, `anthropic`, `google`, etc.).
+- `provider` text / enum (`google` for external connections; local mock is test-only).
 - `label` text.
 - `credential_ciphertext` text or bytea.
 - `credential_nonce` bytea / encoded text.
@@ -29,7 +29,6 @@ Never store plaintext API keys. Never return ciphertext or credential metadata t
 - `provider_connection_id` UUID.
 - `model_id` text.
 - `enabled` boolean.
-- `allow_paid` boolean.
 - `priority` integer.
 - `max_output_tokens` integer nullable.
 - `created_at`, `updated_at`.

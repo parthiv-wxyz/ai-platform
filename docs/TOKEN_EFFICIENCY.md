@@ -2,14 +2,14 @@
 
 ## Goal
 
-Minimize unnecessary inference while preserving answer quality. A low token count is not success if the answer becomes materially worse.
+Minimize unnecessary inference while preserving engineering quality. A low token count is not success if generated code becomes materially less correct, secure, maintainable, or testable.
 
 ## 1. Default execution policy
 
-- Simple task: one model call.
-- Moderate task: one model call; optional review only when requested or justified.
-- Complex task: two or three calls when independent expertise or verification has meaningful value.
-- High-impact task: explicit user opt-in to a bounded review workflow; never claim model consensus guarantees correctness.
+- Code generation, refactoring, and test generation: one model call by default.
+- Debugging and codebase analysis: one model call with focused error and source context.
+- Code review: one model call; optional second review only when a specific unresolved risk justifies it.
+- Architecture design: one model call; additional review only with explicit scope and a fixed cap.
 
 These are defaults, not promises. The planner must account for provider availability, user preferences, model capabilities, and budget.
 
@@ -21,9 +21,10 @@ Every run should have:
 - Optional total input/output token ceiling.
 - Optional estimated monetary ceiling.
 - Allowed provider/model list.
-- Paid-model policy.
+- Free-only provider eligibility policy.
 - Maximum collaboration rounds.
 - Timeout.
+- Validation command and sandbox policy, when code validation is enabled.
 
 The server enforces these constraints. Client-side controls are not security boundaries.
 
@@ -74,15 +75,17 @@ Do not share private conversation or response cache entries across users. Cache 
 - Prefer provider-reported usage for actual token counts.
 - Explain that provider billing may differ due to caching, tool calls, modalities, rounding, or pricing changes.
 
-## 8. No surprise billing
+## 8. Coding safety and no surprise billing
 
 - Paid fallback is off by default.
 - Free-only mode must be enforced in the server router.
-- If free options are exhausted, stop and ask the user whether to enable paid options.
+- If free options are exhausted, stop with an actionable message; paid API inference remains prohibited.
 - Never infer that a user's consumer subscription pays for API requests.
 - Never use a provider key for a different user's request.
 
-Milestone 2 enforces the single-model default: one Gemini request per submitted message, an explicit `maxOutputTokens` limit, a server timeout, no automatic retries, and no paid-provider fallback. Provider billing remains the user's responsibility.
+The free-only gateway preserves the single-model default: one eligible Gemini or local Ollama request per coding task, an explicit `maxOutputTokens` limit, a server timeout, no hidden retries, and no paid-provider fallback. If the Gemini quota is exhausted or Ollama is unavailable, the request stops with an actionable error.
+
+Generated code is never treated as executed. Validation must be an explicit, sandboxed step using approved tests or static analysis. Never automatically execute untrusted generated code.
 
 ## 9. Metrics
 Track:
@@ -97,7 +100,8 @@ Track:
 ## 10. Acceptance tests
 - A simple task in default mode makes at most one model call.
 - A max-call limit of one cannot be exceeded.
-- Paid models are never selected when paid usage is disabled.
+- Models outside the server-side free eligibility registry are never selected.
 - An exhausted budget stops execution before the next call.
 - A reviewer is not invoked when review is disabled.
 - Cancellation prevents future workflow steps.
+- Generated code is not reported as validated unless the configured check actually ran.

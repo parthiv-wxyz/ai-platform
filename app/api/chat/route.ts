@@ -8,10 +8,16 @@ import {
   createConversationService,
   ConversationNotFoundError,
 } from "@/lib/db/conversations";
-import { GeminiProvider } from "@/lib/ai/providers/gemini-provider";
+import { createProviderRegistry } from "@/lib/ai/providers/registry";
+import { isOllamaAvailable } from "@/lib/ai/providers/ollama-provider";
 import { chatInputSchema } from "@/lib/validation/provider";
 import type { AiMessage } from "@/types/ai";
 import { getProviderEnv } from "@/lib/env";
+import { FreeModelEligibilityError } from "@/lib/ai/eligibility";
+import { classifyCodingTask } from "@/lib/ai/tasks";
+import { createExecutionPolicy } from "@/lib/ai/policy";
+import { NoEligibleModelError, routeCodingTask } from "@/lib/ai/router";
+import { AiProviderError, type ProviderId } from "@/types/ai";
 
 export async function POST(request: Request) {
   try {
@@ -24,6 +30,38 @@ export async function POST(request: Request) {
         { status: 401 },
       );
 
+    const task = {
+      taskId: crypto.randomUUID(),
+      taskType: input.taskType,
+      input: input.message,
+      language: input.language,
+      framework: input.framework,
+      sourceCode: input.sourceCode,
+      errorLogs: input.errorLogs,
+      repositoryContext: input.repositoryContext,
+      constraints: { maxOutputTokens: input.maxOutputTokens },
+    };
+    const classification = classifyCodingTask(task);
+    if (
+      classification.needsClarification ||
+      classification.taskType === "UNKNOWN"
+    ) {
+      return NextResponse.json(
+        {
+          error: {
+            code: "TASK_CLARIFICATION_REQUIRED",
+            message:
+              "Select a coding task type or provide a clearer coding request.",
+            classification,
+          },
+        },
+        { status: 400 },
+      );
+    }
+    const policy = createExecutionPolicy({
+      maxOutputTokens: input.maxOutputTokens,
+    });
+
     const conversation = await (
       await createConversationService()
     ).find(input.conversationId);
@@ -34,19 +72,66 @@ export async function POST(request: Request) {
       .eq("user_id", auth.user.id)
       .order("created_at", { ascending: true });
     if (messagesError !== null) throw messagesError;
+    const taskContext = [
+      input.message,
+      input.language === undefined ? null : `Language: ${input.language}`,
+      input.framework === undefined ? null : `Framework: ${input.framework}`,
+      input.sourceCode === undefined
+        ? null
+        : `Source code:\n${input.sourceCode}`,
+      input.errorLogs === undefined ? null : `Error logs:\n${input.errorLogs}`,
+      input.repositoryContext === undefined
+        ? null
+        : `Repository context:\n${input.repositoryContext}`,
+    ]
+      .filter((value): value is string => value !== null)
+      .join("\n\n");
     const messages = [
       ...(priorMessages as AiMessage[]),
-      { role: "user" as const, content: input.message },
+      { role: "user" as const, content: taskContext },
     ];
-    const connectionService = await createProviderConnectionService();
-    const credential =
-      await connectionService.getCredentialFromAnyOwnedGoogleConnection();
-    const response = await new GeminiProvider(credential.apiKey).generate({
-      model: input.model ?? getProviderEnv().GEMINI_DEFAULT_MODEL,
-      messages,
-      maxOutputTokens: input.maxOutputTokens,
-      signal: request.signal,
+    const googleCredential = await (async () => {
+      try {
+        return (
+          await (
+            await createProviderConnectionService()
+          ).getCredentialForProvider("google")
+        ).apiKey;
+      } catch (error) {
+        if (error instanceof ProviderConnectionNotFoundError) return null;
+        throw error;
+      }
+    })();
+    const ollamaBaseUrl = getProviderEnv().OLLAMA_BASE_URL;
+    const availableProviders = new Set<ProviderId>();
+    if (await isOllamaAvailable(ollamaBaseUrl)) {
+      availableProviders.add("ollama");
+    }
+    if (googleCredential !== null) availableProviders.add("google");
+    const decision = routeCodingTask({
+      taskType: classification.taskType,
+      availableProviders,
+      preferredProvider: input.provider,
+      preferredModel:
+        input.model ??
+        (input.provider === "ollama"
+          ? getProviderEnv().OLLAMA_DEFAULT_MODEL
+          : undefined),
+      allowFreeProviderFallback: policy.allowFreeProviderFallback,
     });
+    const credential =
+      decision.provider === "google" ? googleCredential : ollamaBaseUrl;
+    if (credential === null) throw new ProviderConnectionNotFoundError();
+    const response = await createProviderRegistry({
+      [decision.provider]: credential,
+    })
+      .get(decision.provider)
+      .generate({
+        model: decision.modelId,
+        messages,
+        maxOutputTokens: policy.maxOutputTokens,
+        signal: request.signal,
+      });
 
     const userMessageCreatedAt = new Date();
     const assistantMessageCreatedAt = new Date(
@@ -69,7 +154,17 @@ export async function POST(request: Request) {
       },
     ]);
     if (insertError !== null) throw insertError;
-    return NextResponse.json({ response });
+    return NextResponse.json({
+      response,
+      routing: {
+        taskType: classification.taskType,
+        confidence: classification.confidence,
+        provider: decision.provider,
+        model: decision.modelId,
+        reason: decision.reason,
+        fallbackUsed: decision.fallbackUsed,
+      },
+    });
   } catch (error) {
     if (
       error instanceof ConversationNotFoundError ||
@@ -79,16 +174,45 @@ export async function POST(request: Request) {
         {
           error: {
             code: "CONNECTION_NOT_FOUND",
-            message: "Conversation or Gemini connection not found.",
+            message: "Conversation or provider connection not found.",
           },
         },
         { status: 404 },
       );
     }
-    const message =
-      error instanceof Error && error.name === "AiProviderError"
-        ? error.message
-        : "Could not complete the AI request.";
+    if (error instanceof FreeModelEligibilityError) {
+      return NextResponse.json(
+        {
+          error: {
+            code: error.code,
+            message: "Only explicitly verified free-tier models are available.",
+          },
+        },
+        { status: 400 },
+      );
+    }
+    if (error instanceof NoEligibleModelError) {
+      return NextResponse.json(
+        {
+          error: {
+            code: error.code,
+            message: error.message,
+          },
+        },
+        { status: 400 },
+      );
+    }
+    if (error instanceof AiProviderError) {
+      const message =
+        error.code === "QUOTA_EXHAUSTED"
+          ? "The provider's free-tier quota is exhausted. Try again after it resets."
+          : error.message;
+      return NextResponse.json(
+        { error: { code: `PROVIDER_${error.code}`, message } },
+        { status: error.code === "AUTHENTICATION_INVALID" ? 401 : 502 },
+      );
+    }
+    const message = "Could not complete the AI request.";
     return NextResponse.json(
       { error: { code: "PROVIDER_ERROR", message } },
       { status: 500 },

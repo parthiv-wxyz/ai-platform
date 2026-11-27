@@ -67,7 +67,7 @@ export class GeminiProvider implements AiProvider {
   }
 }
 
-function normalizeGeminiError(error: unknown): AiProviderError {
+export function normalizeGeminiError(error: unknown): AiProviderError {
   const message =
     error instanceof Error ? error.message : "Gemini request failed.";
   const status =
@@ -96,19 +96,19 @@ function normalizeGeminiError(error: unknown): AiProviderError {
       { cause: error },
     );
   }
-  if (lower.includes("429") || lower.includes("rate")) {
-    return new AiProviderError(
-      "RATE_LIMITED",
-      "Gemini is temporarily rate-limiting requests.",
-      true,
-      { cause: error },
-    );
-  }
   if (lower.includes("quota")) {
     return new AiProviderError(
       "QUOTA_EXHAUSTED",
       "The Gemini API quota is exhausted.",
       false,
+      { cause: error },
+    );
+  }
+  if (lower.includes("429") || lower.includes("rate")) {
+    return new AiProviderError(
+      "RATE_LIMITED",
+      "Gemini is temporarily rate-limiting requests.",
+      true,
       { cause: error },
     );
   }

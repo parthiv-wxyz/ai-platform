@@ -9,7 +9,6 @@ type Connection = {
   label: string;
   status: string;
 };
-
 export function ProviderManager() {
   const [connections, setConnections] = useState<Connection[]>([]);
   const [label, setLabel] = useState("Personal Gemini key");
@@ -57,7 +56,32 @@ export function ProviderManager() {
   }
   return (
     <section className="mt-8 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+      <div className="grid gap-3 sm:grid-cols-2">
+        <div className="rounded-2xl border border-indigo-200 bg-indigo-50 p-4">
+          <p className="text-sm font-semibold text-indigo-900">Free API</p>
+          <p className="mt-1 text-sm text-indigo-800">Gemini free tier</p>
+          <p className="mt-2 text-xs text-indigo-700">
+            No charge within Google&apos;s free quota. Provider rate and daily
+            limits apply.
+          </p>
+        </div>
+        <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-4">
+          <p className="text-sm font-semibold text-emerald-900">
+            Local unlimited*
+          </p>
+          <p className="mt-1 text-sm text-emerald-800">
+            Qwen3-Coder via Ollama
+          </p>
+          <p className="mt-2 text-xs text-emerald-700">
+            No API billing or provider quota. Requires Ollama running locally;
+            usage is limited by your computer&apos;s hardware.
+          </p>
+        </div>
+      </div>
       <div className="flex flex-col gap-3 sm:flex-row">
+        <div className="rounded-xl border border-slate-300 px-3 py-2.5 text-sm">
+          Google Gemini · free-tier eligible
+        </div>
         <input
           className="flex-1 rounded-xl border border-slate-300 px-3 py-2.5 text-sm"
           value={label}
@@ -80,6 +104,10 @@ export function ProviderManager() {
           Connect
         </Button>
       </div>
+      <p className="mt-3 text-xs text-slate-500">
+        Free API quotas and local hardware limits are shown separately. AI
+        Council never falls back to paid models.
+      </p>
       {message ? (
         <p className="mt-3 text-sm text-slate-600" aria-live="polite">
           {message}

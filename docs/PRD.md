@@ -2,32 +2,31 @@
 
 ## 1. Product summary
 
-AI Council is a unified interface for using multiple AI model providers with user-owned credentials. It uses task-aware routing and optional multi-model collaboration to improve the usefulness of answers without wasting tokens.
+AI Council is a coding-only platform for software generation, debugging, review, refactoring, testing, architecture planning, and repository analysis. It uses task-aware routing and bounded optional review without wasting tokens.
 
 ## 2. Problem
 
-Users currently switch between AI products to compare answers, verify claims, or combine specialist capabilities. Manually copying context between systems is inefficient. Blindly sending every prompt to every model is also expensive and wasteful.
+Developers currently switch between coding assistants, terminals, issue trackers, and test tools while manually copying code and errors between systems. This loses repository context and makes debugging and review inefficient. Blindly sending every coding task to every model is also expensive and wasteful.
 
 ## 3. Target users
 
-- Developers and technical users who maintain API access to multiple providers.
-- Researchers and students who need comparison or verification.
-- Power users who want one interface for several models.
-- Later: small teams that need auditable AI-assisted workflows.
+- Developers working in small and medium-sized codebases.
+- Technical users who want coding models without paid platform-funded inference.
+- Teams that need auditable, bounded AI-assisted engineering workflows.
 
 ## 4. Value proposition
 
-- One interface for supported providers.
-- User controls which providers and models can be used.
+- One interface for common software-engineering tasks.
+- User controls which eligible coding route is used.
 - The default path uses one model when that is sufficient.
-- Additional models are called only when the task or user policy justifies them.
-- Usage, estimated cost, and provider errors are visible.
-- Different models can critique, verify, or build on one another.
+- Additional models are called only when the task and policy justify them.
+- Generated code, validation results, usage, and provider errors are visible.
+- Model disagreement is preserved rather than hidden behind an unsupported consensus claim.
 
 ## 5. Product principles
 
 1. Token thrift is a feature, not an afterthought.
-2. User consent controls paid usage.
+2. Server-side policy prevents paid inference.
 3. User-owned credentials remain isolated.
 4. Provider claims and subscription entitlements are never assumed.
 5. Multi-model consensus must expose unresolved disagreement.
@@ -38,12 +37,12 @@ Users currently switch between AI products to compare answers, verify claims, or
 ### Must have
 - User authentication.
 - Secure provider credential connection / disconnection.
-- Server-side provider adapter for at least one provider, then expand to three.
-- Unified single-model chat.
-- Model selection from the user's enabled providers.
+- Server-side adapters for Gemini, local Ollama/Qwen3-Coder, and MockProvider.
+- Unified single-model coding workflows.
+- Coding-task selection and model routing from the eligible provider registry.
 - Per-request token / usage capture where available.
 - Configurable per-request and per-session limits.
-- No paid fallback unless explicitly enabled.
+- No paid inference or fallback in the free-only product.
 - Conversation persistence with user-level access control.
 - Clear provider error and quota-exhaustion states.
 
@@ -51,14 +50,14 @@ Users currently switch between AI products to compare answers, verify claims, or
 - Basic task classification.
 - Model capability registry.
 - Estimated cost display when pricing data is available.
-- Optional second-model review.
+- Optional bounded second-model review for coding tasks.
 - Usage dashboard.
 - Export / delete conversation controls.
 
 ### Later
-- Debate mode.
-- Specialist agents.
-- Consensus and evidence evaluation.
+- Unbounded debate loops or autonomous coding agents.
+- Automatic execution of untrusted generated code.
+- Specialist workflows without explicit budgets and stopping rules.
 - Semantic cache.
 - Team workspaces and shared workflows.
 - Paid SaaS features such as team controls, audit history, and advanced orchestration.
@@ -75,23 +74,23 @@ Users currently switch between AI products to compare answers, verify claims, or
 
 ## 8. User stories
 
-- As a user, I can add my own provider API key so requests are billed to my provider account.
-- As a user, I can choose exactly which connected model receives a prompt.
+- As a user, I can connect Gemini or choose a local Ollama/Qwen route.
+- As a user, I can choose a coding task type and eligible model route.
 - As a user, I can set a maximum token budget for a task.
-- As a user, I can disable paid models and paid fallback.
+- As a user, I can see that only verified free-tier models are available.
 - As a user, I can see which models were called and why.
-- As a user, I can compare responses without automatically triggering a judge call.
-- As a user, I can request a review when I want a second opinion.
+- As a user, I can request a bounded code review or second opinion without automatically triggering extra calls.
 - As a user, I can delete a credential and prevent future use of it.
 - As a user, I can delete my conversation history.
 
 ## 9. MVP success criteria
 
 - A user can securely connect and disconnect a provider credential.
-- A single-model request completes end-to-end.
+- A single-model coding request completes end-to-end.
 - No provider credential is returned to client-side code.
 - A disabled or over-budget model is never called.
-- A simple task does not trigger extra model calls.
+- A simple coding task does not trigger extra model calls.
+- Generated code is never described as executed unless validation actually ran.
 - Usage records are associated with the correct user and provider.
 - Provider failures are normalized and understandable.
 - Tests prove cross-user credential and conversation isolation.

@@ -1,7 +1,7 @@
 # AGENTS.md — AI Council
 
 ## Mission
-Build AI Council: a BYOK (Bring Your Own Key), multi-model AI collaboration platform. Users connect provider credentials they are authorized to use. AI Council routes tasks to suitable models, coordinates optional collaboration, and returns a consolidated result while minimizing unnecessary inference.
+Build AI Council: a coding-focused BYOK platform. Users connect authorized coding-model credentials or run local models. AI Council routes coding tasks to suitable models, coordinates bounded optional analysis, and returns actionable engineering output while minimizing unnecessary inference.
 
 ## Product principles
 1. **Token efficiency first.** Never call multiple models by default just to create activity. Start with the smallest useful execution plan.
@@ -9,16 +9,16 @@ Build AI Council: a BYOK (Bring Your Own Key), multi-model AI collaboration plat
 3. **BYOK, not subscription circumvention.** Do not assume a consumer AI subscription grants API access. Use official APIs, supported OAuth flows, or user-provided API keys only where permitted.
 4. **Privacy by design.** Provider credentials are secrets. Never expose them to the browser, logs, analytics, or other users.
 5. **Provider independence.** Keep provider-specific logic behind adapters. Product logic must not depend on one provider's response format.
-6. **Honest output.** A consensus score is an evaluation signal, not proof of truth. Preserve uncertainty and material disagreement.
+6. **Engineering honesty.** Never claim generated code was executed or tested unless the system actually ran the relevant checks. Preserve uncertainty and material disagreement.
 7. **Build the smallest working system.** Prefer a modular monolith over premature microservices.
 
 ## Current product decisions
 - Project name: AI Council.
 - Personal side project with a portfolio-to-SaaS path.
 - Development and hosting target: free tiers / zero upfront cost.
-- Model access: users bring their own API keys or use supported official authorization integrations.
-- Initial providers: OpenAI, Google Gemini, Anthropic. Verify current official docs before implementation.
-- Initial product milestone: secure unified AI gateway and single-model chat before multi-agent debate.
+- Model access: Gemini free API, local Ollama/Qwen3-Coder, and the deterministic mock provider. Paid API inference is prohibited.
+- Coding task types: code generation, debugging, review, refactoring, test generation, architecture design, and codebase analysis.
+- Initial product milestone: secure coding gateway and single-model execution before bounded multi-model review.
 - Initial stack: Next.js + TypeScript, Supabase Auth/Postgres, server-side provider adapters, Vercel free tier where suitable.
 - Start with a custom, deterministic orchestration state machine. Add a graph framework only if complexity justifies it.
 
@@ -33,7 +33,7 @@ Build AI Council: a BYOK (Bring Your Own Key), multi-model AI collaboration plat
 - Validate all external input at runtime (e.g. Zod).
 - Keep provider SDK calls server-side only.
 - Do not commit `.env`, API keys, tokens, service-role keys, or real user data.
-- Add tests for routing, budget enforcement, credential isolation, and orchestration stopping conditions.
+- Add tests for coding-task routing, budget enforcement, credential isolation, generated-code validation, and orchestration stopping conditions.
 - Make usage/cost estimates explicit and label estimates as estimates.
 - Persist only the minimum data needed. Avoid storing raw provider credentials in plaintext.
 - Every provider request must have timeout, error normalization, and usage capture where the provider returns usage.
@@ -71,7 +71,7 @@ A feature is not complete until:
 - loading, empty, success, and error states are handled;
 - tests cover important logic;
 - documentation and `.env.example` are updated where needed;
-- no paid fallback or extra model call can happen without the configured policy allowing it.
+- no paid fallback, unbounded execution, unsafe code execution, or extra model call can happen without the configured policy allowing it.
 
 <!-- BEGIN:nextjs-agent-rules -->
 

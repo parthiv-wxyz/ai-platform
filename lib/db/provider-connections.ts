@@ -11,10 +11,13 @@ import {
   connectionIdSchema,
   providerConnectionInputSchema,
 } from "@/lib/validation/provider";
+import type { ProviderId } from "@/types/ai";
+
+type ConnectedProviderId = Exclude<ProviderId, "mock">;
 
 export type ProviderConnection = {
   id: string;
-  provider: "google";
+  provider: ConnectedProviderId;
   label: string;
   status: "active" | "invalid" | "revoked";
   createdAt: string;
@@ -22,7 +25,7 @@ export type ProviderConnection = {
 
 type ConnectionRow = {
   id: string;
-  provider: "google";
+  provider: ConnectedProviderId;
   label: string;
   status: ProviderConnection["status"];
   created_at: string;
@@ -71,7 +74,7 @@ export class ProviderConnectionService {
 
   async getCredential(
     id: string,
-  ): Promise<{ provider: "google"; apiKey: string }> {
+  ): Promise<{ provider: ConnectedProviderId; apiKey: string }> {
     const row = await this.repository.findForUser(
       (await this.currentUser()).id,
       connectionIdSchema.parse(id),
@@ -86,14 +89,14 @@ export class ProviderConnectionService {
     return { provider: row.provider, apiKey: decryptCredential(encrypted) };
   }
 
-  async getCredentialFromAnyOwnedGoogleConnection(): Promise<{
-    provider: "google";
+  async getCredentialForProvider(provider: ConnectedProviderId): Promise<{
+    provider: ConnectedProviderId;
     apiKey: string;
   }> {
     const rows = await this.repository.listForUser(
       (await this.currentUser()).id,
     );
-    const connection = rows[0];
+    const connection = rows.find((row) => row.provider === provider);
     if (connection === undefined) throw new ProviderConnectionNotFoundError();
     return this.getCredential(connection.id);
   }
@@ -126,7 +129,7 @@ class SupabaseProviderConnectionRepository implements ProviderConnectionReposito
     return (
       data as Array<{
         id: string;
-        provider: "google";
+        provider: ConnectedProviderId;
         label: string;
         status: ProviderConnection["status"];
         created_at: string;
@@ -165,7 +168,7 @@ class SupabaseProviderConnectionRepository implements ProviderConnectionReposito
     if (error !== null) throw error;
     const row = data as {
       id: string;
-      provider: "google";
+      provider: ConnectedProviderId;
       label: string;
       status: ProviderConnection["status"];
       created_at: string;

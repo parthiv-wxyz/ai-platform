@@ -6,14 +6,15 @@ All provider-specific code belongs behind adapters. The rest of the application 
 
 ## 2. Initial providers
 
-Potential initial integrations:
-- OpenAI API
-- Google Gemini API
-- Anthropic API
+The coding platform supports Google Gemini through its free API tier, Qwen3-Coder locally through Ollama, and MockProvider for deterministic development and testing. Paid API inference is not supported.
 
-Provider support, model names, authorization options, rate limits, regional availability, and pricing change. Verify official current documentation before coding each integration.
+Provider support, model names, authorization options, rate limits, regional availability, and free-tier terms change. Verify official current documentation before enabling each integration.
 
-Milestone 2 implements Google Gemini through the official `@google/genai` SDK. OpenAI and Anthropic remain intentionally unimplemented. The default path makes one Gemini call per chat submission; model and output-token limits are validated server-side, with no automatic fallback or hidden retry.
+Google Gemini is implemented through the official `@google/genai` SDK. The default path makes one provider call per chat submission; model and output-token limits are validated server-side, with no automatic fallback or hidden retry.
+
+The only externally connectable provider is `google`; Ollama is a local provider and does not store an API credential. The server retrieves the authenticated owner's encrypted Gemini credential or calls the local Ollama HTTP server through the shared provider registry. The server-side eligibility registry enables `gemini-3.5-flash-lite` as a free-tier model and `qwen3-coder` as a local no-quota model, with each limitation recorded.
+
+For local Qwen, install Ollama, pull the configured model (`ollama pull qwen3-coder`), and keep the Ollama service running at `OLLAMA_BASE_URL`. “No quota” means no provider API quota or API billing; inference remains limited by the user's local CPU, GPU, memory, and model size.
 
 ## 3. Credential modes
 
@@ -29,7 +30,19 @@ Do not:
 - Claim that ChatGPT Plus / Claude Pro / consumer plans automatically include API usage.
 - Circumvent provider quotas, rate limits, or billing.
 
-## 4. Normalized request
+## 4. Coding request context
+
+Coding requests should carry the task type and only the relevant context:
+
+- task type from the coding taxonomy;
+- source files or focused excerpts;
+- compiler, test, or runtime errors for debugging;
+- requirements and acceptance criteria for generation and test tasks;
+- repository structure and dependency metadata for codebase analysis.
+
+Do not send an entire repository by default. Redact secrets and unrelated personal data before provider calls.
+
+## 5. Normalized request
 
 A provider request should contain:
 - `model`
@@ -42,7 +55,7 @@ A provider request should contain:
 
 Do not assume all providers support all fields.
 
-## 5. Normalized response
+## 6. Normalized response
 
 Return:
 - `content`
@@ -58,7 +71,7 @@ Return:
 
 Use `null` / unavailable rather than fabricating missing usage.
 
-## 6. Capability registry
+## 7. Capability registry
 
 For each model, track:
 - Provider and model identifier.
@@ -74,7 +87,7 @@ For each model, track:
 
 Do not hardcode stale pricing into routing logic. A model's capabilities must be verified against official provider docs.
 
-## 7. Error normalization
+## 8. Error normalization
 
 Map provider errors to internal codes:
 - authentication invalid
@@ -88,7 +101,7 @@ Map provider errors to internal codes:
 
 Preserve a safe diagnostic code and provider request ID where available. Redact raw payloads and secrets.
 
-## 8. Adapter tests
+## 9. Adapter tests
 
 For each provider:
 - Valid request mapping.
@@ -99,7 +112,8 @@ For each provider:
 - Streaming event normalization.
 - Unsupported capability rejection.
 - Secret redaction.
+- Coding-task compatibility and local-provider availability behavior.
 
-## 9. Local Gemini setup
+## 10. Local provider setup
 
 Add a Gemini API key through the authenticated **Provider connections** screen. It is encrypted with AES-256-GCM before persistence and never returned after saving. Set `AI_CREDENTIAL_ENCRYPTION_KEY` to a random 32-byte hex value and keep `SUPABASE_SERVICE_ROLE_KEY` server-only. Apply the provider migration after the authentication/conversations migration.

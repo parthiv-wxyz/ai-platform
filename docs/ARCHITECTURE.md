@@ -6,15 +6,15 @@ Use a modular monolith initially. Deploy one web application with clear internal
 
 ## 2. High-level request flow
 
-1. Browser submits a validated task to the application server.
+1. Browser submits a validated coding task to the application server.
 2. Server authenticates the user and checks authorization.
 3. Policy engine loads the user's enabled providers, model allowlist, and budget.
-4. Task classifier selects a minimal execution plan.
+4. Coding task classifier assigns a task type and selects a minimal execution plan.
 5. Router selects an eligible model.
 6. Provider adapter retrieves/decrypts the user's credential server-side and makes the provider request.
 7. Usage recorder stores returned usage and the model call metadata.
 8. Optional evaluator/reviewer runs only if the execution plan and budget permit it.
-9. Synthesizer produces a final response when needed.
+9. Synthesizer produces a final coding result or preserves distinct findings when synthesis would hide disagreement.
 10. Server streams or returns the result and usage summary.
 
 ## 3. Logical modules
@@ -29,6 +29,7 @@ Use a modular monolith initially. Deploy one web application with clear internal
 
 - User, ProviderConnection, Model, Conversation, Message, Run, ModelCall, UsageRecord.
 - Policies for eligibility, budgets, and workflow selection.
+- Coding task taxonomy and task-specific routing policies.
 
 ### AI integration layer
 
@@ -45,6 +46,7 @@ Use a modular monolith initially. Deploy one web application with clear internal
 - Agent executor.
 - Evaluator and synthesizer.
 - Stop-condition evaluator.
+- Generated-code validation planner.
 
 ### Security and persistence
 
@@ -75,10 +77,12 @@ components/
 lib/
   ai/
     contracts/
+    tasks/
+    model-registry.ts
+    policy.ts
     providers/
     registry/
     router/
-    classifier/
     orchestrator/
     evaluator/
     synthesizer/
@@ -108,21 +112,35 @@ Every provider adapter should implement a common interface:
 
 Do not require all providers to support identical features. Capabilities must be explicit: streaming, structured output, vision, tool calls, context window, and usage reporting.
 
-## 6. Routing policy
+## 6. Coding task taxonomy
+
+The classifier uses a closed, extensible coding taxonomy:
+
+- `CODE_GENERATION` — produce an implementation from requirements.
+- `DEBUGGING` — analyze an error, failure, or unexpected behavior with relevant source context.
+- `CODE_REVIEW` — inspect correctness, security, performance, and maintainability.
+- `REFACTORING` — improve structure or readability while preserving behavior.
+- `TEST_GENERATION` — produce unit or integration tests from implementation and requirements.
+- `ARCHITECTURE_DESIGN` — propose components, interfaces, data flows, and implementation steps.
+- `CODEBASE_ANALYSIS` — explain repository structure, dependencies, and relevant execution paths.
+
+Each task type has a routing policy. For example, code generation favors implementation capability, debugging receives the error and relevant source, code review uses correctness/security/maintainability criteria, and test generation receives the implementation plus requirements. The policy must state whether a second model is justified and what evidence it must add.
+
+## 7. Routing policy
 
 The router must filter models in this order:
 
 1. User has an active connection for the provider.
 2. Model is enabled by the user.
 3. Model supports the task's required capability.
-4. Model is allowed by the user's free/paid policy.
+4. Model is present in the server-side free eligibility registry and is currently enabled.
 5. Model fits the configured budget and token limits.
 6. Model is not currently unavailable or rate-limited, if that status is known.
-7. Rank remaining models by suitability, user preference, estimated cost, and latency.
+7. Rank remaining models by coding capability, task fit, local/cloud mode, user preference, and latency.
 
-If no eligible model remains, return a clear explanation. Never silently pick a paid model.
+If no eligible free model remains, return a clear explanation. Unknown, paid, disabled, and unverified models are rejected; there is no paid fallback.
 
-## 7. Orchestration state machine
+## 8. Orchestration state machine
 
 Initial states:
 
@@ -141,7 +159,11 @@ Initial states:
 
 Transitions must be explicit and tested. Every model call consumes from a run-level budget reservation before execution. Release unused reservation after completion or failure.
 
-## 8. Streaming
+Defaults are one model call, one bounded output, and one finite execution budget. There are no unlimited agent runs or automatic debate loops. Additional calls require a recorded reason, an explicit call limit, and remaining budget. Preserve material disagreements in the result.
+
+Generated code is an artifact until validated. The system may run approved tests or static analysis in a sandboxed, explicitly configured environment, but it must never automatically execute untrusted generated code or claim validation that did not occur.
+
+## 9. Streaming
 
 Use server-sent events (SSE) for one-way progress updates initially. Stream meaningful events such as:
 
@@ -156,18 +178,18 @@ Use server-sent events (SSE) for one-way progress updates initially. Stream mean
 
 Do not stream internal chain-of-thought. Show concise status and user-visible summaries, not hidden reasoning.
 
-## 9. Reliability
+## 10. Reliability
 
 - Per-provider timeout.
 - Bounded retries only for safe transient failures.
 - Respect rate-limit responses.
 - Idempotency key for run creation where feasible.
 - Cancellation support where provider APIs allow it.
-- Persist run status so a refresh does not create duplicate paid calls.
+- Persist run status so a refresh does not create duplicate provider calls.
 - Handle partial completion if one optional reviewer fails.
 - Never retry a timed-out billable request without considering whether the provider may already have processed it.
 
-## 10. Free-tier deployment assumptions
+## 11. Free-tier deployment assumptions
 
 Use free hosting tiers only as a development constraint, not as a guarantee of permanent free production hosting. Check current limits, sleeping behavior, request duration, database storage, and commercial-use terms before launch. Avoid long-running background jobs in the MVP.
 
@@ -180,4 +202,4 @@ Use free hosting tiers only as a development constraint, not as a guarantee of p
 - The `messages` composite foreign key binds `conversation_id` and `user_id` to the same conversation owner, preventing a cross-user message reference even before RLS is evaluated.
 - The service-role key is intentionally absent from this milestone.
 
-Real provider adapters, provider credential encryption, routing, and orchestration remain future milestones.
+Gemini, local Ollama/Qwen3-Coder, provider credential encryption, and free eligibility enforcement are implemented foundations. Coding task classification, task-specific routing, bounded review, and generated-code validation remain future milestones.

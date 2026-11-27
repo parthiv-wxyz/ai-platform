@@ -24,6 +24,8 @@ For a personal prototype, an environment-managed encryption key may be used. Bef
 
 Provider ciphertext columns are not granted to the browser-facing authenticated role. Server code verifies the Supabase session owner first, then uses the server-only service-role client for the minimum credential read needed by the provider adapter. The service-role key is never sent to the browser.
 
+OpenAI and Gemini keys use the same encrypted `provider_connections` storage and ownership checks. Provider selection is validated against an allowlist; it cannot select another user's connection or inject a provider base URL.
+
 ## 3. API security
 - Validate request bodies and query parameters.
 - Add rate limits to credential, chat, and expensive endpoints.

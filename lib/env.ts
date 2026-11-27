@@ -28,6 +28,8 @@ const providerEnvSchema = z.object({
   AI_CREDENTIAL_ENCRYPTION_KEY: z.string().regex(/^[0-9a-f]{64}$/i),
   SUPABASE_SERVICE_ROLE_KEY: z.string().min(1),
   GEMINI_DEFAULT_MODEL: z.string().min(1).default("gemini-3.5-flash-lite"),
+  OLLAMA_BASE_URL: z.string().url().default("http://127.0.0.1:11434"),
+  OLLAMA_DEFAULT_MODEL: z.string().min(1).default("qwen3-coder"),
   AI_PROVIDER_TIMEOUT_MS: z.coerce
     .number()
     .int()
